@@ -66,4 +66,5 @@ AuxiliaryFan,BoxFan}`, `ZOffset`, `LightStatus{SecondLight,RgbLight}`,
 
 ## Verified
 
-2026-11-07 against FW V1.1.40 @ 192.168.0.120: status/attr reads, 403 LightStatus write (Ack 0).
+2026-11-07 against FW V1.1.40 @ 192.168.0.120: status/attr reads, 403 LightStatus write
+(physically confirmed both directions), 402 autohome Z,X,Y (physically confirmed gantry homed).
