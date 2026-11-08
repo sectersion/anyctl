@@ -11,6 +11,47 @@ autohome over LAN, a 3 MB gcode uploaded by reverse-engineered chunked
 multipart, and a 3DBenchy printed at "Ludicrous" speed — commanded entirely by
 an agent that had never seen the protocol before. That loop is the product.
 
+## What this is
+
+Not a smarter smart-home hub, not a firmware fork — an agent that can read a
+protocol, respect the physical world, and *remember* what it learned in files
+you can diff. Imagine yourself in one of these:
+
+**You run prints — one loud printer or a farm of them.** Drop a sliced file in
+a folder; Claude's scripts upload it, start the job, and watch the layer
+counter while you sleep. The chamber cam catches spaghetti at layer 20 instead
+of you catching it at layer 200, and when the job finishes the printer's own
+history archive — thumbnail, runtime, timelapse — lands in chat. *Real: a
+3DBenchy, 160% speed, printed and verified end-to-end this way.*
+
+**You do low-level hardware work.** A mystery module appears on the desk: you
+hold it to the webcam and the agent reads the markings, pulls the pinout, and
+answers "which pin is TX?" before you burn anything. The analog bench PSU?
+Glue a $2 servo to its dial, let the camera read the meter, and it is now
+programmable — no firmware, just servo angles and pixels. *Eyes are real
+(`/snap`); the servo tier is the roadmap.*
+
+**You run a home lab.** The router's serial console is already on your bench —
+the agent drives it, interrupts boot, gets a shell. Then that same rooted box
+becomes the network bridge for every UART device you own, so each one ends up
+reachable as `socket://host:port`, one line of Python away.
+
+**You're on the bands.** Frequency, mode, and meter readings from a script
+while you work; the radio becomes addressable like anything else. Transmitting
+stays behind an explicit human gate, because the callsign — and the spectrum —
+belongs to a person. *(tr)uSDX client shipped, pending wire verification.*
+
+**You collect weird machines.** SDCP WebSocket printers, CAT radios, chunked
+upload endpoints, MJPEG cams: every closed device yields to the same procedure
+— listen first, diff against the vendor UI's own traffic, verify against
+reality, write the notes down. `devices/` in this repo is that down payment,
+made from the one device nobody documented properly.
+
+Through-line: anyctl gives agents **hands** (scripts that act on devices),
+**eyes** (cameras that read the world), and **memory** (device caches that
+outlive the session that discovered them).
+
+
 ## What's inside
 
 | Skill | What it does |
