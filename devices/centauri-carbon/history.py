@@ -2,23 +2,16 @@
 """Centauri Carbon print history: list recent jobs, grab the newest thumbnail.
   python history.py [n]   # n entries (default 3); newest thumbnail -> history_thumb.jpg
 """
-import asyncio, json, sys, time, urllib.request, websockets
-from centauri import HOST, env
+import asyncio, json, sys, time, urllib.parse, urllib.request, websockets
+from centauri import HOST, ask
 
 async def send(ws, cmd, data, label="", timeout=8):
-    await ws.send(env(cmd, data, True))
-    end = time.time() + timeout
-    while time.time() < end:
-        try:
-            m = json.loads(await asyncio.wait_for(ws.recv(), max(0.1, end-time.time())))
-        except asyncio.TimeoutError:
-            print(f"{label}: NO REPLY"); return None
-        d = m.get("Data", {})
-        if d.get("Cmd") == cmd:
-            return d.get("Data")
+    return await ask(ws, cmd, data, label, timeout)
 
 async def main():
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+    a_video = "--video" in sys.argv
+    args = [x for x in sys.argv[1:] if not x.startswith("--")]
+    n = int(args[0]) if args else 3
     async with websockets.connect(f"ws://{HOST}:3030/websocket",
                                   origin=f"http://{HOST}", open_timeout=5) as ws:
         h = await send(ws, 320, {}, "320")
@@ -31,6 +24,26 @@ async def main():
             print(json.dumps(e, ensure_ascii=False)[:600], "\n---")
         for e in det:                      # newest = first entry
             t = e.get("Thumbnail") or ""
+            if a_video and e.get("TimeLapseVideoUrl"):
+                print("TLP URL:", e["TimeLapseVideoUrl"])
+                # wire truth (590.js): 323 takes {Url:[<device path>,…]}, replies
+                # Data.Data.Data = [downloadable items]
+                r = await send(ws, 323, {"Url": [e["TimeLapseVideoUrl"]]}, "323", 30)
+                print("323 raw:", json.dumps(r, ensure_ascii=False))
+                items = (r or {}).get("Data") or []
+                for k, it in enumerate(items if isinstance(items, list) else [items]):
+                    u = it if isinstance(it, str) else (it or {}).get("Url", "")
+                    if not u: continue
+                    u = u if u.startswith("http") else (
+                        f"http://{HOST}" + urllib.parse.quote(u))  # UI encodes basename
+                    try:
+                        data = urllib.request.urlopen(
+                            urllib.request.Request(u, headers={"User-Agent": "anyctl"}),
+                            timeout=60).read()
+                        open(f"tl_{k}.mp4", "wb").write(data)
+                        print(f"tl_{k}.mp4: {len(data)} bytes ({u})")
+                    except Exception as ex:
+                        print("fetch failed:", ex, u)
             if t:
                 url = t if t.startswith("http") else f"http://{HOST}{t}"
                 try:
