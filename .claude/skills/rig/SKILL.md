@@ -10,11 +10,11 @@ Find the COM port: `python -m serial.tools.list_ports` (or ask the user which
 port the rig's USB/serial shows up on).
 
 ```
-python cat.py COM9                      # status: IF; parsed + ID;
-python cat.py COM9 --listen 10          # raw traffic — do this FIRST
-python cat.py COM9 --freq 14.074        # set frequency
-python cat.py COM9 --cmd "MD3;"         # any raw CAT command
-python cat.py COM9 --tx --yes           # PTT — see gate below
+python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9                      # status: IF; parsed + ID;
+python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --listen 10          # raw traffic — do this FIRST
+python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --freq 14.074        # set frequency
+python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --cmd "MD3;"         # any raw CAT command
+python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --tx --yes           # PTT — see gate below
 ```
 
 ## Rules

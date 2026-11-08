@@ -1,0 +1,12 @@
+{
+  "name": "anyctl",
+  "description": "Skills for controlling real hardware: discovery method, verified device caches, one-shot scripts.",
+  "owner": { "name": "Oliver" },
+  "plugins": [
+    {
+      "name": "anyctl",
+      "source": "./",
+      "description": "Control anything: method skills + verified device caches for printers, radios, and serial machines."
+    }
+  ]
+}

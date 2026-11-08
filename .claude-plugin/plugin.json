@@ -1,0 +1,8 @@
+{
+  "name": "anyctl",
+  "description": "Control anything: probe, verify, and cache real hardware — 3D printers, radios, serial devices — with method skills and one-shot Python clients.",
+  "author": { "name": "Oliver" },
+  "license": "MIT",
+  "keywords": ["hardware", "serial", "uart", "3d-printing", "radio", "home-lab", "reverse-engineering"],
+  "skills": ["./.claude/skills"]
+}
