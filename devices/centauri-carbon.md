@@ -55,7 +55,10 @@ On page open the UI bursts, in order: `258 {Url:"/local"}`, `386 {Enable:1}`, `0
 `TempOfHotbed/Nozzle/Box`, `TempTarget*`, `CurrenCoord:"x,y,z"`, `CurrentFanSpeed{ModelFan,
 AuxiliaryFan,BoxFan}`, `ZOffset`, `LightStatus{SecondLight,RgbLight}`,
 `PrintInfo{Status,CurrentLayer,TotalLayer,Filename,Progress,PrintSpeedPct}`, `Status.CurrentStatus`
-(state enum: 0=idle, 13=printing, 5/6=suspending/p, 8/14=stopped, 9=complete, 12=recovery, 10=file detect)
+(state enum — wire-truth beats i18n: **1 = printing/active** (UI's jog guard is
+`CurrentStatus.includes(1)`), 0 = standby, 9 = idle/complete. Documented from bundle:
+5/6 suspending/paused, 8/14 stopped, 10 file-detect, 12 recovery, 13 "printing" — but live
+prints report 1, not 13. Trust the wire.)
 
 ## Gotchas
 
