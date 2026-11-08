@@ -46,8 +46,8 @@ On page open the UI bursts, in order: `258 {Url:"/local"}`, `386 {Enable:1}`, `0
 | 323 | GET_PRINTER_HISTORY_VIDEO | |
 | 386 | EDIT_PRINTER_VIDEO_STREAMING | `{Enable:1}` → ack carries `VideoUrl` (`:3031/video` MJPEG) |
 | 387 | EDIT_PRINTER_TIME_LAPSE_STATUS | |
-| 401 | EDIT_PRINTER_AXIS_NUMBER | jog (payload TBD) |
-| 402 | EDIT_PRINTER_AXIS_ZERO | home (payload TBD) |
+| 401 | EDIT_PRINTER_AXIS_NUMBER | jog: `{Axis:"X"\|"Y"\|"Z", Step:±mm}` (UI steps .1/1/10/100; sign = direction). Untested on wire. |
+| 402 | EDIT_PRINTER_AXIS_ZERO | home: `{Axis:"X"\|"Y"\|"Z"}` — **string, not number**; pass real `Id`+`MainboardID`. Autohome = send Z, then X, then Y. CONFIRMED: all acked 0, coords → 0.00,0.00,0.00 |
 | 403 | EDIT_PRINTER_STATUS_DATA | generic patch — `{"LightStatus":{"SecondLight":true,"RgbLight":[0,0,0]}}` = light ON, **exact UI frame, confirmed**. `false` = off. RgbLight stays [0,0,0] even when on. |
 
 ## Status fields (Cmd 0 push)
