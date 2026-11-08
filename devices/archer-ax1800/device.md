@@ -1,10 +1,11 @@
 # TP-Link Archer AX1800 — Ver 4.6
 
-**Target:** read-only console on **stock firmware** (owner's call — no flashing this
-session). Interface: on-board UART, 3.3 V TTL via USB-UART adapter.
-**Status: ON THE WIRE** — full boot log captured 2026-11-08 (COM4 @115200, 122 KB,
-`Downloads\ax1800_boot1.log`). Wire truth overrode the research: the SoC is **not**
-MT7981B, it's **MT7621A** (see below).
+**Target:** console on stock firmware. **VERDICT (2026-11-08): serial console is
+OUTPUT-ONLY.** Full boot + runtime logs broadcast at 115200; firmware ignores ALL
+serial input by policy — U-Boot break (`4`/`t`) and recovery (`x`) are vestigial
+(`test_mode=disable` printed at boot), no getty in Linux userspace. Command access
+on this unit = web UI (factory-reset fallback, owner-approved), not serial.
+**Status: ON THE WIRE, fully named, input confirmed dead by three methods.**
 
 ## Interview facts (2026-11-08)
 
@@ -27,11 +28,14 @@ MT7981B, it's **MT7621A** (see below).
   update bootloader" (MXIC-family NOR). Kernel `3.10.108`, built by
   `jenkins@sohoicilinux4` (Buildroot gcc 4.6.3). `bad CRC, using default
   environment` — U-Boot env is at defaults on this unit.
-- CONFIRMED from our own boot log: **bootloader break key = `4` or `t`**
-  ("Press '4' or 't' to break the booting process"). 115200 8N1 CONFIRMED (clean
-  ASCII, no garble). Userspace logs verbosely to serial through full boot
-  (hyfi bridging, smart_home_schedule, `DEBUG_LEVEL:1`) — console is NOT
-  firmware-disabled on Ver 4.6.
+- CONFIRMED from our own boot log: countdown banner prints "Press '4' or 't' to
+  break the booting process" + "Press 'x' to enter recovery web server" — but all
+  three are **inert on Ver 4.6**: flood-spam, ROM-echo-proven delivery, and
+  surgically-timed taps after the exact marker all failed to break boot
+  (`test_mode=disable` printed at boot; input ignored by policy). 115200 8N1
+  CONFIRMED (clean ASCII). Userspace logs verbosely through full boot then goes
+  silent; `\r` after boot gets ZERO bytes — no getty. Console NOT password-locked;
+  simply not listening.
 - OpenWrt TOH blocked for bots (Anubis proof-of-work wall at openwrt.org; GitHub
   mirror path 404, gitweb path 404). TODO: human browser visit to
   `openwrt.org/toh/tp-link/archer_ax1800` — check serial pinout photo + whether
@@ -64,13 +68,18 @@ push files with mpremote, not drag.
 
 ## Bench state (2026-11-08, photographed via /snap)
 
-- Case open. **Three wires on the unlabeled header beside the shield can — NOW
-  NAMED (CONFIRMED 2026-11-08):** **red = GND** (continuity to shield can),
-  **yellow = TX** (boot log appeared wired yellow→silk `TX`, red→GND),
-  **brown/orange = RX or VCC** — not yet needed; meter saw 3.3 V on it (idle-high
-  RX fits). Router stays powered with red+yellow on the bridge; EN→GND keeps the
-  S3 silent. (Freenove silk names follow ESP32 convention: silk `TX` = bridge
-  INPUT = where router TX lands. Labels name the owner's output.)
+- Case open. **Four-wire header beside the shield can, ALL NAMED (CONFIRMED
+  2026-11-08):** **red = GND** (continuity to shield can), **yellow = router TX**
+  (boot log), **brown = router RX** (proved by ROM-echo: our `4` spam came back
+  byte-for-byte at the head of a cold boot — the MT7621 boot ROM sniffs UART and
+  echoes before U-Boot), **orange = VCC 3.3 V** (never on the wire — see hazard).
+  Adapter = Freenove CH343 on COM4 (silk `TX` is the bridge INPUT, silk `RX` the
+  OUTPUT — labels name the board's own transmit).
+- **Phantom-power hazard, confirmed twice:** clipping the bridge's `RX`/output
+  wire to the header while the router is unpowered back-feeds its dead 3.3 V rail
+  through the pad's ESD diode (TX LED stuck lit; router then refuses to boot at
+  all). Rule: **bridge TX wire only ever touches a powered router** — clip after
+  power-on, unclip before power-off.
 
 ## Wire-naming protocol (run BEFORE powering router)
 
@@ -105,7 +114,9 @@ shows boot spam names TX+GND; third wire = RX by elimination. Brief VCC→GND co
 ## Verified
 
 - 2026-11-08: adapter chain (COM3 ⇄ GP0/GP1 @115200) by GP0→GP1 loopback echo.
-- 2026-11-08: **FULL BOOT LOG** on COM4 (CH343, 115200) — 122 KB clean ASCII,
-  yellow=TX/red=GND proven by the log itself. Bootloader break key `4`/`t`
-  CONFIRMED (read from log text; interrupt trial pending). MT7621A / kernel
-  3.10.108 recorded above. Login-prompt + Ctrl-C-vs-shell state: untested.
+- 2026-11-08: **FULL BOOT LOGS** ×4 on COM4 (CH343, 115200, clean ASCII) —
+  `Downloads\ax1800_boot1.log` et al. All four header wires named by evidence
+  (GND/TX/RX/VCC); RX delivery proven by boot-ROM echo. Break keys `4`/`t`/`x`
+  CONFIRMED VESTIGIAL (input ignored while physically delivered). Kernel console
+  = ttyS1 output only; no login prompt ever. Phantom-power hazard documented.
+  Next door if ever wanted: web UI after factory reset (owner pre-approved).
