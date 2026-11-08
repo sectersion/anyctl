@@ -57,6 +57,7 @@ outlive the session that discovered them).
 | Skill | What it does |
 |-------|--------------|
 | `/anyctl` | the method: five laws (listen before write, wire truth beats docs, …), discovery ladder, device-cache template |
+| `/register` | onboard a new device end-to-end: interview → OSS research → wire probing (`probe.py`) → web-UI reverse engineering → scaffolded, dated device notes |
 | `/snap` | take a picture of the physical setup — because an ack proves the wire, not the machine |
 | `/rig` | amateur radio via Kenwood CAT (verified target: (tr)uSDX), with a human gate on TX |
 
