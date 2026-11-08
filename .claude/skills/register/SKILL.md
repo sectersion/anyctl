@@ -65,6 +65,11 @@ Unsolicited frames = free ground truth and free test data. For serial: open the
 port, read bytes for 10s at the device's nominal baud before writing. Try
 `*IDN?` if it claims SCPI.
 
+For boot windows and bootloader countdowns, use the interactive console in this
+directory — `${CLAUDE_SKILL_DIR}/console.py COM3 115200 --log boot.log` forwards
+Ctrl-C to the device instead of dying, holds-a-key spams through the countdown,
+and raw-logs everything.
+
 ## 5. Write commands, one at a time, with markers
 
 Send the smallest read-only command first. Then per law 2, before anything that

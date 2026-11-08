@@ -65,6 +65,7 @@ outlive the session that discovered them).
 |------------------------|-----------|
 | `devices/centauri-carbon/` | Elegoo Centauri Carbon — WebSocket SDCP, MJPEG cam, upload + print + history, **wire-verified** |
 | `devices/trusdx/` | (tr)uSDX (TS-480-compatible CAT) over USB serial — derived from hamlib, **pending wire** |
+| `devices/archer-ax1800/` | TP-Link Archer AX1800 Ver 4.6 — UART console on stock firmware, onboarding plan + research, **pending wire** |
 
 Drivers live beside their device notes; generic tools live inside skills
 (`.claude/skills/snap/snap.py`). Plain stdlib plus at most one pip dependency per
