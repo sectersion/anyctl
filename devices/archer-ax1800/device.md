@@ -29,39 +29,55 @@ session). Interface: on-board UART, 3.3 V TTL via USB-UART adapter.
   bootloader countdown key is Ctrl-C on some models, hold-`4` on others; pads
   silkscreened with a 3.3V pin — **never wire VCC**, adapter is powered from the PC.
 
+## Adapter: FREENOVE ESP32-S3-WROOM-1 dev board (two USB-C ports)
+
+- `USB-UART` = on-board bridge chip. **This is the console adapter.** The bridge is
+  a 16-pin package ⇒ CH340-family or CH9102 (exact part = read marking; both need a
+  driver on clean Windows). Serial header = the TX/RX pins silkscreened beside the
+  USB-UART socket, independent of ESP32 firmware state. Header names follow the
+  ESP32 side, so they read BACKWARDS for piggyback use: silk `TX` = net ESP32-TX =
+  **bridge RX input** (listen here); silk `RX` = **bridge TX output** (drive here).
+  These nets are shared with the S3's GPIO43/44 — an unflashed S3 may spit boot-loop
+  noise on them (wire-verify); the router's log is distinct at 115200 anyway.
+- `USB-OTG` = ESP32-S3 native USB. **Never use for console** unless firmware
+  implements CDC — an S3 with blank firmware attaches (D+ pull-up) but never answers
+  a descriptor request, so Windows shows Code 43 "Device Descriptor Request Failed"
+  with `VID_0000&PID_0002`. Observed live 2026-11-08. Not a cable, driver, or
+  hardware fault — wrong port.
+- No EN→GND strap was ever fitted (owner corrected). ESP32 side is irrelevant to
+  the USB-UART port; do not hold the S3 in reset as a "piggyback" trick.
+- Gate: EN-low/reset tricks and any flashing of the S3 need owner's OK — reflashing
+  the dev board is a separate project from reading the router.
+
 ## Bench state (2026-11-08, photographed via /snap)
 
 - Case open. **Three wires (red/yellow/orange ribbon) are soldered to an UNLABELED
   header beside the shield can** — owner knows it's the UART, not the assignment.
   Router-side pins unknown: {GND, TX, RX} or include a VCC wire — must name before
   anything touches the dev board.
-- Adapter side = **ESP32 dev board, EN tied to GND** (SoC held in reset; piggybacking
-  only its USB-UART bridge, a 16-pin chip — CH340/CH9102 family, unconfirmed).
-  Bridge enumerates independently of ESP32 state. CONFIRMED-by-photo: board LED lit
-  = VCC/data-GND path of cable alive, but Windows saw "Device Descriptor Request
-  Failed" → USB **data** lines dead → charge-only/damaged cable, awaiting swap.
-- Dev-board pin convention (VERIFY BY WIRE, standard-layout assumption):
-  silk `TX0`/GPIO1 = bridge **RX input** (listen here); silk `RX0`/GPIO3 = bridge
-  **TX output** (drive router RX here). Labels follow the ESP32 side, so they look
-  backwards when the ESP32 is held in reset.
+- COM state: on `USB-UART`, bridge not yet seen in the port list — next check is
+  Device Manager for a CH340/CH9102 entry needing a driver (see adapter section).
 
 ## Wire-naming protocol (run BEFORE powering router)
 
 Meter route: continuity to shield can → GND wire; then per-wire DC vs shield while
 router boots: steady 3.30 V = VCC (never connects to dev board GND — short),
 jittering-while-booting = TX, quiet/floating = RX.
-No-meter route: for each wire pair, one on dev `TX0` (bridge input, high-Z, safe to
-touch anything), one on dev GND; power router ~10 s; the combo that shows boot spam
-names TX+GND; third wire = RX by elimination. Brief VCC→GND contact = USB brownout,
-tolerable, not repeatable.
+No-meter route: for each wire pair, one on dev silk `TX` (= bridge RX input,
+high-Z, safe to touch anything), one on dev GND; power router ~10 s; the combo that
+shows boot spam names TX+GND; third wire = RX by elimination. Brief VCC→GND contact
+= USB brownout, tolerable, not repeatable.
 
 ## First-contact plan (next actions)
 
-1. Swap the dev board's USB cable until `probe.py serial` shows the bridge's COM.
+1. On `USB-UART` + known-data cable: get the bridge's COM in `probe.py serial`.
+   Descriptor failure again on this port (not USB-OTG) ⇒ driver-less under "Other
+   devices" → install WCH driver; hard fail on both hosts → bridge-side hardware.
 2. Run the wire-naming protocol above → know GND/TX/RX before any boot.
 3. Law 1 — listen before write: `console.py COMx 115200 --log boot.log`, wire
-   router-TX→dev `TX0`, router-GND→dev GND, then power the router. Boot spam
-   = pinout proven. Garbled → wrong baud; silence → the TX/RX call was backwards.
+   router-TX→dev silk `TX` (bridge input), router-GND→dev GND, then power the
+   router. Boot spam = pinout proven. Garbled → wrong baud; silence → TX/RX call
+   was backwards.
 4. Bootloader window: hold Ctrl-C (and separately try `4`) during the 1-3 s
    countdown; whichever interrupts, record it here as CONFIRMED.
 5. If a Linux login appears: do NOT attempt serial-password guessing; stock TP-Link
