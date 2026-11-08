@@ -11,8 +11,8 @@ telemetry disagree, take a picture before debugging further.
 ## Desk / room webcam (USB, DirectShow)
 
 ```
-python ${CLAUDE_PLUGIN_ROOT}/snap.py                     # list video devices
-python ${CLAUDE_PLUGIN_ROOT}/snap.py "Web Camera" out.jpg
+python ${CLAUDE_SKILL_DIR}/snap.py                     # list video devices
+python ${CLAUDE_SKILL_DIR}/snap.py "Web Camera" out.jpg
 ```
 
 Then **Read out.jpg** — the image renders inline. ffmpeg-based (`-f dshow`),

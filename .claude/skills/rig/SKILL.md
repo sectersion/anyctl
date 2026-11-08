@@ -5,16 +5,17 @@ description: Control a Kenwood CAT amateur radio (TS-480 family) — read freque
 
 # Rig — TS-480 on the wire
 
-Client is `cat.py` (repo root); protocol notes in `devices/ts-480.md`.
+Client is `${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py`; protocol notes in
+`devices/trusdx/device.md`.
 Find the COM port: `python -m serial.tools.list_ports` (or ask the user which
 port the rig's USB/serial shows up on).
 
 ```
-python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9                      # status: IF; parsed + ID;
-python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --listen 10          # raw traffic — do this FIRST
-python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --freq 14.074        # set frequency
-python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --cmd "MD3;"         # any raw CAT command
-python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --tx --yes           # PTT — see gate below
+python ${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py COM9                      # status: IF; parsed + ID;
+python ${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py COM9 --listen 10          # raw traffic — do this FIRST
+python ${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py COM9 --freq 14.074        # set frequency
+python ${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py COM9 --cmd "MD3;"         # any raw CAT command
+python ${CLAUDE_PLUGIN_ROOT}/devices/trusdx/cat.py COM9 --tx --yes           # PTT — see gate below
 ```
 
 ## Rules
@@ -30,5 +31,5 @@ python ${CLAUDE_PLUGIN_ROOT}/cat.py COM9 --tx --yes           # PTT — see gate
 - TS-480 acks are flaky by design (`RX;` returns `?`/nothing; some replies are
   a bare `;`). Read state with `IF;`, never from an ack.
 - Device notes are **not yet wire-verified** — on first successful session,
-  update `devices/ts-480.md` with the real `IF;` field positions and correct
+  update `devices/trusdx/device.md` with the real `IF;` field positions and correct
   the doc, then move it out of "NOT YET".

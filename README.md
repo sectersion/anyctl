@@ -19,14 +19,14 @@ an agent that had never seen the protocol before. That loop is the product.
 | `/snap` | take a picture of the physical setup — because an ack proves the wire, not the machine |
 | `/rig` | amateur radio via Kenwood CAT (verified target: (tr)uSDX), with a human gate on TX |
 
-| Device notes | Interface |
-|--------------|-----------|
-| `devices/centauri-carbon.md` | Elegoo Centauri Carbon — WebSocket SDCP, MJPEG cam, upload + print, **wire-verified** |
-| `devices/ts-480.md` | (tr)uSDX / TS-480-compatible CAT over USB serial — derived from hamlib, **pending wire** |
+| Device notes + drivers | Interface |
+|------------------------|-----------|
+| `devices/centauri-carbon/` | Elegoo Centauri Carbon — WebSocket SDCP, MJPEG cam, upload + print + history, **wire-verified** |
+| `devices/trusdx/` | (tr)uSDX (TS-480-compatible CAT) over USB serial — derived from hamlib, **pending wire** |
 
-Scripts are plain stdlib-plus-one-dependency one-shots (`send.py`, `watch.py`,
-`upload.py`, `shot.py`, `snap.py`, `cat.py`) — a fleet is a pile of scripts,
-not a daemon.
+Drivers live beside their device notes; generic tools live inside skills
+(`.claude/skills/snap/snap.py`). Plain stdlib plus at most one pip dependency per
+script — a fleet is a pile of scripts, not a daemon.
 
 ## Install
 

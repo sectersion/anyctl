@@ -6,9 +6,9 @@ allowed-tools: Bash(python *), Bash(ffmpeg *), Read, Write, Edit
 
 # anyctl — control anything
 
-The method. Devices live in `devices/*.md` next to this repo's scripts; use
-those first, this skill second. Nothing here is clever — it is the order that
-worked, in the order to repeat it.
+The method. Devices live in `devices/<name>/` — a `device.md` note plus that
+machine's driver scripts beside it; use those first, this skill second. Nothing
+here is clever — it is the order that worked, in the order to repeat it.
 
 ## Five laws
 
@@ -73,7 +73,7 @@ whole bench is LAN-addressable.
 
 ## Patterns already proven here
 
-- **WS JSON control + MJPEG video** (Centauri Carbon): see `devices/centauri-carbon.md`
-- **Chunked multipart upload, no auth** (same printer): `upload.py`
+- **WS JSON control + MJPEG video** (Centauri Carbon): `devices/centauri-carbon/`
+- **Chunked multipart upload, no auth** (same printer): `upload.py` there
 - **UVC webcam via ffmpeg dshow** — see `/snap`
-- **ASCII serial CAT** (Kenwood-style, (tr)uSDX): see `/rig`
+- **ASCII serial CAT** (Kenwood-style, (tr)uSDX): `devices/trusdx/`, see `/rig`

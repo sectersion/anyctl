@@ -2,16 +2,8 @@
 """anyctl print — home, set speed, start a gcode already on the Centauri Carbon.
   python print_benchy.py [--speed 160] [--no-home] [filename-on-device]
 """
-import argparse, asyncio, json, secrets, time, websockets
-
-HOST = "192.168.0.120"
-ID = "979d4C788A4a78bC777A870F1A02867A"
-MB = "448e195701045b4000000c0000000000"
-
-def env(cmd, data, rid=False):
-    return json.dumps({"Id": ID if rid else "", "Data": {"Cmd": cmd, "Data": data,
-        "RequestID": secrets.token_hex(16), "MainboardID": MB if rid else "",
-        "TimeStamp": int(time.time()), "From": 1}})
+import argparse, asyncio, json, time, websockets
+from centauri import HOST, env
 
 async def send(ws, cmd, data, rid=False, label="", timeout=8):
     await ws.send(env(cmd, data, rid))

@@ -3,8 +3,9 @@
   - python shot.py out.jpg            # fast path: one MJPEG frame from :3031/video
   - python shot.py --warm out.jpg     # also enable streaming via WS Cmd 386 and keep it on
 """
-import argparse, asyncio, json, secrets, socket, sys, time
+import argparse, asyncio, sys, time
 import urllib.request
+from centauri import HOST, env
 
 def grab(host, port=3031, path="/video", secs=8.0):
     """Pull the MJPEG stream; save bytes from the first JPEG SOI marker past the next."""
@@ -28,13 +29,11 @@ def grab(host, port=3031, path="/video", secs=8.0):
 
 async def enable_video(host, on=True):
     import websockets
-    env = json.dumps({"Id": "", "Data": {"Cmd": 386, "Data": {"Enable": 1 if on else 0},
-                "RequestID": secrets.token_hex(16), "MainboardID": "",
-                "TimeStamp": int(time.time()), "From": 1}})
+    msg = env(386, {"Enable": 1 if on else 0})
     try:
         async with websockets.connect(f"ws://{host}:3030/websocket",
                                       origin=f"http://{host}", open_timeout=5) as ws:
-            await ws.send(env)
+            await ws.send(msg)
             await asyncio.wait_for(ws.recv(), 5)
     except Exception as e:
         print("ws enable failed:", e, file=sys.stderr)
@@ -42,7 +41,7 @@ async def enable_video(host, on=True):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--warm", action="store_true", help="enable streaming via WS first")
-    ap.add_argument("--host", default="192.168.0.120")
+    ap.add_argument("--host", default=HOST)
     ap.add_argument("out", nargs="?", default="shot.jpg")
     a = ap.parse_args()
     sys.argv[-1] = a.out

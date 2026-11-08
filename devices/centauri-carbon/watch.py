@@ -2,11 +2,8 @@
 """Watch a Centauri Carbon print; print one line per meaningful change; exit on finish.
   python watch.py            # exit 0 = complete, exit 2 = paused/stopped/lost
 """
-import asyncio, json, secrets, sys, time, websockets
-HOST = "192.168.0.120"
-def env(cmd, data):
-    return json.dumps({"Id":"","Data":{"Cmd":cmd,"Data":data,
-        "RequestID":secrets.token_hex(16),"MainboardID":"","TimeStamp":int(time.time()),"From":1}})
+import asyncio, json, sys, time, websockets
+from centauri import HOST, env
 async def main():
     last = None
     seen_printing = False
@@ -41,9 +38,11 @@ async def main():
                     f"nozzle={s['TempOfNozzle']:.0f}/{s['TempTargetNozzle']:.0f} "
                     f"bed={s['TempOfHotbed']:.0f}/{s['TempTargetHotbed']:.0f} file={pi['Filename']!r}")
             print(line, flush=True)
-            if 13 in s["CurrentStatus"] or pi["Status"] == 13:
+            if 1 in s["CurrentStatus"]:
                 seen_printing = True
-            if pi["Progress"] >= 100 or (seen_printing and 9 in s["CurrentStatus"]):
+            # wire truth: finish is 1 -> [0]+Filename cleared, never Progress 100
+            if pi["Progress"] >= 100 or (seen_printing and 0 in s["CurrentStatus"]
+                                         and not pi["Filename"]):
                 print("COMPLETE"); return 0
             if any(x in s["CurrentStatus"] for x in (5, 6, 8, 14)):
                 print("PAUSED/STOPPED"); return 2

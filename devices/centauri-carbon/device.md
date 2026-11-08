@@ -6,6 +6,11 @@
 No auth, no TLS on LAN. **Single-client**: the printer silently ignores a second WebSocket —
 close the browser tab before scripting.
 
+**Layout:** drivers live beside this note and share `centauri.py` (envelope builder +
+`CENTAURI_HOST/ID/MB` env-overridable constants): `send.py` (one raw packet),
+`watch.py` (print watcher), `upload.py`, `shot.py` (chamber cam), `print_benchy.py`,
+`history.py` (cmds 320/321).
+
 ## Envelope (all metadata nested INSIDE `Data`, top level is only `{Id, Data, Topic?}`)
 
 ```json
@@ -40,8 +45,8 @@ On page open the UI bursts, in order: `258 {Url:"/local"}`, `386 {Enable:1}`, `0
 | 258 | GET_PRINTER_FILE_LIST | `{Url:"/local"}` |
 | 259 | DELETE_PRINTER_FILE_LIST | |
 | 260 | GET_PRINTER_FILE_DETAIL | |
-| 320 | GET_PRINTER_HISTORY_ID | → `HistoryData: [uuid,...]` |
-| 321 | GET_PRINTER_TASK_DETAIL | `{Id:[uuid,...]}` → `HistoryDetailList` w/ Thumbnail URLs |
+| 320 | GET_PRINTER_HISTORY_ID | → `HistoryData: [uuid,...]` — **newest first** |
+| 321 | GET_PRINTER_TASK_DETAIL | `{Id:[uuid,…]}` → `HistoryDetailList`: Thumbnail (full http PNG), TaskName, Begin/EndTime, TaskStatus (1=OK,3=fail), MD5, AlreadyPrintLayer/total, TimeLapseVideoStatus (1=ready?)/Url `/local/aic_tlp/<name>-<date>…` |
 | 322 | DELETE_PRINTER_HISTORY | |
 | 323 | GET_PRINTER_HISTORY_VIDEO | |
 | 386 | EDIT_PRINTER_VIDEO_STREAMING | `{Enable:1}` → ack carries `VideoUrl` (`:3031/video` MJPEG) |
@@ -82,4 +87,9 @@ PrintPlatformType:0, Tlp_Switch:0|1 (timelapse)}` — Filename comes from Cmd 26
 ## Verified
 
 2026-11-07 against FW V1.1.40 @ 192.168.0.120: status/attr reads, 403 LightStatus write
-(physically confirmed both directions), 402 autohome Z,X,Y (physically confirmed gantry homed).
+(physically confirmed both directions), 402 autohome Z,X,Y (physically confirmed gantry
+homed). FULL LIFECYCLE proven: upload benchy (3 chunks) → 128 START Ack 0 → watch to
+completion → 320/321 history + thumbnail. Completion transition on the wire is
+state 1 → 0 with Progress 99 → 0 (never reports 100; never the documented 9 — watch for
+`1 then 0` + Filename cleared). First agent-driven print on this machine (Claude's debut):
+3DBenchy 240/240, 40m08s @160%, TaskStatus 1.
