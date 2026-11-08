@@ -2,7 +2,9 @@
 
 **Target:** read-only console on **stock firmware** (owner's call — no flashing this
 session). Interface: on-board UART, 3.3 V TTL via USB-UART adapter.
-**Status: NOT YET ON THE WIRE** — everything below is research + plan, nothing verified.
+**Status: ON THE WIRE** — full boot log captured 2026-11-08 (COM4 @115200, 122 KB,
+`Downloads\ax1800_boot1.log`). Wire truth overrode the research: the SoC is **not**
+MT7981B, it's **MT7621A** (see below).
 
 ## Interview facts (2026-11-08)
 
@@ -18,9 +20,18 @@ session). Interface: on-board UART, 3.3 V TTL via USB-UART adapter.
 - Vendor page CONFIRMED — TP-Link mapping note "**Vx.0 = Vx.6/Vx.8/Vx.9**" ⇒ Ver 4.6
   belongs to the V4 hardware family. EU page renders V1 only; regional SKU lists
   differ — **the label is the truth**, not the website.
-- UNVERIFIED (search-prose, no primary source — law 3): claims that AX1800 revs use
-  a **MediaTek MT7981B (Filogic)** SoC, UART @115200, 4-pin pads GND/RX/TX/VCC.
-  Plausible but nothing was fetched from a real teardown or OpenWrt TOH.
+- UNVERIFIED (search-prose) — MT7981B claim **REFUTED by boot log 2026-11-08**:
+  U-Boot banner reads `ASIC MT7621A DualCore (MAC to MT7530 Mode)`, Ralink UBoot
+  5.0.0.0, U-Boot 1.1.3 (Feb 16 2022), DRAM 128 MB DDR3, SPI flash,
+  `flash manufacture id: 20, device id 40 18` → "un-recognized chip ID, please
+  update bootloader" (MXIC-family NOR). Kernel `3.10.108`, built by
+  `jenkins@sohoicilinux4` (Buildroot gcc 4.6.3). `bad CRC, using default
+  environment` — U-Boot env is at defaults on this unit.
+- CONFIRMED from our own boot log: **bootloader break key = `4` or `t`**
+  ("Press '4' or 't' to break the booting process"). 115200 8N1 CONFIRMED (clean
+  ASCII, no garble). Userspace logs verbosely to serial through full boot
+  (hyfi bridging, smart_home_schedule, `DEBUG_LEVEL:1`) — console is NOT
+  firmware-disabled on Ver 4.6.
 - OpenWrt TOH blocked for bots (Anubis proof-of-work wall at openwrt.org; GitHub
   mirror path 404, gitweb path 404). TODO: human browser visit to
   `openwrt.org/toh/tp-link/archer_ax1800` — check serial pinout photo + whether
@@ -53,13 +64,13 @@ push files with mpremote, not drag.
 
 ## Bench state (2026-11-08, photographed via /snap)
 
-- Case open. **Three wires (red/yellow/orange ribbon) are soldered to an UNLABELED
-  header beside the shield can** — owner knows it's the UART, not the assignment.
-  Router-side pins unknown: {GND, TX, RX} or include a VCC wire — must name before
-  anything touches the dev board.
-- COM state: COM3 = Pico bridge, live and loopback-proven. Router wires still
-  unassigned (see wire-naming protocol; GP1 is now the safe high-Z listen pin,
-  replacing "dev silk TX" below).
+- Case open. **Three wires on the unlabeled header beside the shield can — NOW
+  NAMED (CONFIRMED 2026-11-08):** **red = GND** (continuity to shield can),
+  **yellow = TX** (boot log appeared wired yellow→silk `TX`, red→GND),
+  **brown/orange = RX or VCC** — not yet needed; meter saw 3.3 V on it (idle-high
+  RX fits). Router stays powered with red+yellow on the bridge; EN→GND keeps the
+  S3 silent. (Freenove silk names follow ESP32 convention: silk `TX` = bridge
+  INPUT = where router TX lands. Labels name the owner's output.)
 
 ## Wire-naming protocol (run BEFORE powering router)
 
@@ -94,4 +105,7 @@ shows boot spam names TX+GND; third wire = RX by elimination. Brief VCC→GND co
 ## Verified
 
 - 2026-11-08: adapter chain (COM3 ⇄ GP0/GP1 @115200) by GP0→GP1 loopback echo.
-  Router itself: _nothing on the wire yet — boot log flips the rest._
+- 2026-11-08: **FULL BOOT LOG** on COM4 (CH343, 115200) — 122 KB clean ASCII,
+  yellow=TX/red=GND proven by the log itself. Bootloader break key `4`/`t`
+  CONFIRMED (read from log text; interrupt trial pending). MT7621A / kernel
+  3.10.108 recorded above. Login-prompt + Ctrl-C-vs-shell state: untested.
