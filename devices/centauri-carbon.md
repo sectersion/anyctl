@@ -62,7 +62,19 @@ AuxiliaryFan,BoxFan}`, `ZOffset`, `LightStatus{SecondLight,RgbLight}`,
 - Envelope metadata inside `Data` or the message is **silently dropped** (no error frame).
 - One WS client at a time; second connections open but get nothing.
 - `RgbLight:[0,0,0]` in captures = off; `[255,255,255]` = on.
-- File upload path not yet reversed (255 = "send file end" implies streaming somewhere).
+## File upload (no WS involved)
+
+Sequential 1 MB chunks, `POST http://<ip>/uploadFile/upload`, multipart form:
+`TotalSize` (bytes), `Uuid` (32-hex, one per upload), `Offset` (chunk start), `Check`("1"),
+`S-File-MD5` (md5 of the WHOLE file), `File` (the chunk; part filename = target gcode name).
+Last chunk completes the file — UI then just re-requests Cmd 258; Cmd 255 appears unused.
+See `upload.py`.
+
+## Start print
+
+`128 {Filename:"x.gcode", StartLayer:0, Calibration_switch:0|1 (auto bed level),
+PrintPlatformType:0, Tlp_Switch:0|1 (timelapse)}` — Filename comes from Cmd 260 file detail.
+`129` suspend, `130` stop, `131` restore — all `{}`, pass real `Id`+`MainboardID` like 402.
 
 ## Verified
 
