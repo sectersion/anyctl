@@ -29,15 +29,40 @@ session). Interface: on-board UART, 3.3 V TTL via USB-UART adapter.
   bootloader countdown key is Ctrl-C on some models, hold-`4` on others; pads
   silkscreened with a 3.3V pin — **never wire VCC**, adapter is powered from the PC.
 
-## First-contact plan (when the power cable is found)
+## Bench state (2026-11-08, photographed via /snap)
 
-1. Open case (screws usually under rubber feet/pads). Locate 4-pin silkscreened
-   UART pads near the SoC. **`/snap` the board** into the notes for the pinout.
-2. Wire GND↔GND, board-TX↔adapter-RX, board-RX↔adapter-TX. Skip VCC.
-3. Law 1 — listen before write: `console.py COMx 115200 --log boot.log`, power the
-   router. Boot log = pinout + baud proven in one shot. Garbled → try 9600/57600;
-   silence → swap candidate TX pads.
-4. Bootloader window: hold Ctrl-C (and separately try `4`) during the 1–3 s
+- Case open. **Three wires (red/yellow/orange ribbon) are soldered to an UNLABELED
+  header beside the shield can** — owner knows it's the UART, not the assignment.
+  Router-side pins unknown: {GND, TX, RX} or include a VCC wire — must name before
+  anything touches the dev board.
+- Adapter side = **ESP32 dev board, EN tied to GND** (SoC held in reset; piggybacking
+  only its USB-UART bridge, a 16-pin chip — CH340/CH9102 family, unconfirmed).
+  Bridge enumerates independently of ESP32 state. CONFIRMED-by-photo: board LED lit
+  = VCC/data-GND path of cable alive, but Windows saw "Device Descriptor Request
+  Failed" → USB **data** lines dead → charge-only/damaged cable, awaiting swap.
+- Dev-board pin convention (VERIFY BY WIRE, standard-layout assumption):
+  silk `TX0`/GPIO1 = bridge **RX input** (listen here); silk `RX0`/GPIO3 = bridge
+  **TX output** (drive router RX here). Labels follow the ESP32 side, so they look
+  backwards when the ESP32 is held in reset.
+
+## Wire-naming protocol (run BEFORE powering router)
+
+Meter route: continuity to shield can → GND wire; then per-wire DC vs shield while
+router boots: steady 3.30 V = VCC (never connects to dev board GND — short),
+jittering-while-booting = TX, quiet/floating = RX.
+No-meter route: for each wire pair, one on dev `TX0` (bridge input, high-Z, safe to
+touch anything), one on dev GND; power router ~10 s; the combo that shows boot spam
+names TX+GND; third wire = RX by elimination. Brief VCC→GND contact = USB brownout,
+tolerable, not repeatable.
+
+## First-contact plan (next actions)
+
+1. Swap the dev board's USB cable until `probe.py serial` shows the bridge's COM.
+2. Run the wire-naming protocol above → know GND/TX/RX before any boot.
+3. Law 1 — listen before write: `console.py COMx 115200 --log boot.log`, wire
+   router-TX→dev `TX0`, router-GND→dev GND, then power the router. Boot spam
+   = pinout proven. Garbled → wrong baud; silence → the TX/RX call was backwards.
+4. Bootloader window: hold Ctrl-C (and separately try `4`) during the 1-3 s
    countdown; whichever interrupts, record it here as CONFIRMED.
 5. If a Linux login appears: do NOT attempt serial-password guessing; stock TP-Link
    serial shells are commonly locked — stop and report, fallback = factory reset +
