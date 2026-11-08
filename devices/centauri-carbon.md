@@ -15,7 +15,11 @@ close the browser tab before scripting.
 
 Replies arrive as topics: `sdcp/response/<MainboardID>` (ack: `Data.Data.Ack == 0` = OK),
 `sdcp/status/<MainboardID>` (full status push), `sdcp/attributes`, `sdcp/error`.
-Heartbeat every 30s: send text frame `ping`.
+Heartbeat every 30s: send text frame `ping`. Acks echo our `RequestID`; responses carry
+`Id` = board serial. Server also **pushes Status and Attributes unsolicited** — a
+listen-only client gets telemetry for free.
+On page open the UI bursts, in order: `258 {Url:"/local"}`, `386 {Enable:1}`, `0`, `1`,
+`320`, `134` — canonical wake sequence.
 
 ## Command table (from webapp bundle enum)
 
@@ -36,15 +40,15 @@ Heartbeat every 30s: send text frame `ping`.
 | 258 | GET_PRINTER_FILE_LIST | `{Url:"/local"}` |
 | 259 | DELETE_PRINTER_FILE_LIST | |
 | 260 | GET_PRINTER_FILE_DETAIL | |
-| 320 | GET_PRINTER_HISTORY_ID | |
-| 321 | GET_PRINTER_TASK_DETAIL | `{Id: historyId}` |
+| 320 | GET_PRINTER_HISTORY_ID | → `HistoryData: [uuid,...]` |
+| 321 | GET_PRINTER_TASK_DETAIL | `{Id:[uuid,...]}` → `HistoryDetailList` w/ Thumbnail URLs |
 | 322 | DELETE_PRINTER_HISTORY | |
 | 323 | GET_PRINTER_HISTORY_VIDEO | |
-| 386 | EDIT_PRINTER_VIDEO_STREAMING | |
+| 386 | EDIT_PRINTER_VIDEO_STREAMING | `{Enable:1}` → ack carries `VideoUrl` (`:3031/video` MJPEG) |
 | 387 | EDIT_PRINTER_TIME_LAPSE_STATUS | |
 | 401 | EDIT_PRINTER_AXIS_NUMBER | jog (payload TBD) |
 | 402 | EDIT_PRINTER_AXIS_ZERO | home (payload TBD) |
-| 403 | EDIT_PRINTER_STATUS_DATA | generic patch — `{"LightStatus":{"SecondLight":bool,"RgbLight":[r,g,b]}}` CONFIRMED ack'd; temps/other fields untested |
+| 403 | EDIT_PRINTER_STATUS_DATA | generic patch — `{"LightStatus":{"SecondLight":true,"RgbLight":[0,0,0]}}` = light ON, **exact UI frame, confirmed**. `false` = off. RgbLight stays [0,0,0] even when on. |
 
 ## Status fields (Cmd 0 push)
 
